@@ -39,10 +39,10 @@ read_svy <- function(path) {
 }
 
 #make sure to write in the correct csv name manually with most recent csv from qualtrics
-S1 <- read_svy("EMA 1.csv") %>% mutate(Survey = "EMA_1")
-S2 <- read_svy("EMA 2.csv") %>% mutate(Survey = "EMA_2")
-S3 <- read_svy("EMA 3.csv") %>% mutate(Survey = "EMA_3")
-S4 <- read_svy("EMA 4 + DD.csv")  %>% mutate(Survey = "EMA_DD_4")
+S1 <- read_svy(list.files(pattern = "^EMA 1.*\\.csv$", full.names = TRUE)) %>% mutate(Survey = "EMA_1")
+S2 <- read_svy(list.files(pattern = "^EMA 2.*\\.csv$", full.names = TRUE)) %>% mutate(Survey = "EMA_2")
+S3 <- read_svy(list.files(pattern = "^EMA 3.*\\.csv$", full.names = TRUE)) %>% mutate(Survey = "EMA_3")
+S4 <- read_svy(list.files(pattern = "^EMA 4 and DD.*\\.csv$", full.names = TRUE))  %>% mutate(Survey = "EMA_DD_4")
 
 
 all_surveys <- bind_rows(S1,S2,S3,S4) %>%
@@ -163,7 +163,10 @@ final_df <- info_needed %>%
   left_join(final_slots, by = "participant.ID") %>%
   relocate(participant.ID, days_so_far, surveys_completed, current_adherence) %>%
   left_join(counts, by = "participant.ID") %>%
-  relocate(EMA_responses, DD_responses, .after = surveys_completed)
+  relocate(EMA_responses, DD_responses, .after = surveys_completed) %>%
+  mutate(row_order = match(participant.ID, current_ps$participant.ID)) %>%
+  arrange(row_order) %>%
+  select(-row_order)
 
 #this writes it all up into one nice csv!
 #write.csv(final_df, file = "Final Data Tracking.csv", row.names = FALSE)
